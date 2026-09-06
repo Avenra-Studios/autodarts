@@ -5,6 +5,7 @@
   --sk-scale: 1;
   --sk-maxw: 1500px;
   --sk-card-w: 640px;
+  --sk-col-w: 280px;
   --sk-history-w: 150px;
   --sk-table-row-gap: 6px;
   --sk-bg: #1d264a;
@@ -283,6 +284,40 @@
   font-size: var(--sk-stat-size); color: var(--sk-muted);
 }
 #autodarts-skin-root .sk-pg.is-cur { background: var(--sk-accent); color: #04101f; font-weight: 800; }
+
+/* ---- layout: sides (panels beside a big board, darts on top) ---- */
+#autodarts-skin-root[data-layout="sides"] .sk-panel { display: none; }
+#autodarts-skin-root[data-layout="sides"] .sk-stage {
+  padding: calc(var(--sk-gap) * 0.7) var(--sk-gap);
+  gap: 8px;
+}
+#autodarts-skin-root .sk-col {
+  position: absolute;
+  z-index: 4;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--sk-gap) * 0.7);
+  width: var(--sk-col-w);
+}
+#autodarts-skin-root .sk-col .sk-card {
+  flex: 0 0 auto;
+  max-width: none;
+  min-height: 0;
+  padding: 14px 16px;
+  align-items: stretch;
+}
+#autodarts-skin-root .sk-col .sk-card-main { align-items: center; gap: 4px; }
+#autodarts-skin-root .sk-col .sk-score { font-size: clamp(38px, calc(var(--sk-score-size) * 0.9), 88px); }
+#autodarts-skin-root .sk-col .sk-name { font-size: calc(var(--sk-name-size) * 0.95); }
+#autodarts-skin-root .sk-col .sk-history {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+#autodarts-skin-root .sk-col .sk-h-rows { flex: 1; justify-content: flex-start; }
+#autodarts-skin-root[data-layout="sides"] .sk-darts-row { max-width: min(70vw, 880px); }
+#autodarts-skin-root[data-layout="sides"] .sk-dart { padding: 9px 6px; min-height: calc(var(--sk-dart-size) + 18px); }
 
 /* ---- layout: minimal ------------------------------------- */
 #autodarts-skin-root[data-layout="minimal"] .sk-history,

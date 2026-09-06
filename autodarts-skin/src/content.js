@@ -39,7 +39,11 @@
     // bar, row 2 = the board, row 3 = the Next/undo controls.
     const GP = '[class*="container-type:size"]';
     const BOARD = `${GP} > div[class*="grid-rows-"]`;
-    const reserve = Math.ceil((overlay.stageHeight() || 240) + 8);
+    // In "sides" layout the panels are off to the sides, so barely any top
+    // space is reserved — the board fills the freed room.
+    const reserve = settings.layout === "sides"
+      ? Math.ceil((overlay.stageHeight() || 90) * 0.55 + 4)
+      : Math.ceil((overlay.stageHeight() || 240) + 8);
     let css = `
       ${GP} > div:not([class*="grid-rows-"]) { display: none !important; }
       ${BOARD} { visibility: visible !important; }

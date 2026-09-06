@@ -25,8 +25,12 @@
     this.sideR = el("div", "sk-history sk-side sk-side-r");
     this.sideL.hidden = true;
     this.sideR.hidden = true;
+    this.colL = el("div", "sk-col sk-col-l");
+    this.colR = el("div", "sk-col sk-col-r");
+    this.colL.hidden = true;
+    this.colR.hidden = true;
     this.stage.append(this.panel, this.dartsRow, this.pager);
-    this.rootEl.append(this.backdrop, this.stage, this.banner, this.sideL, this.sideR);
+    this.rootEl.append(this.backdrop, this.stage, this.banner, this.sideL, this.sideR, this.colL, this.colR);
     this._s = {};
     this._cards = [];
     this._lastActive = -1;
@@ -71,21 +75,17 @@
     this.setVisible(true);
     this.dartsRow.textContent = "";
     this.pager.textContent = "";
+    const n = model.players.length;
+    const sidesLayout = s.layout === "sides";
 
     // keep card elements stable across updates so animations aren't interrupted
-    while (this._cards.length > model.players.length) this._cards.pop().remove();
-    while (this._cards.length < model.players.length) {
-      const c = el("div", "sk-card");
-      this.panel.appendChild(c);
-      this._cards.push(c);
-    }
+    while (this._cards.length > n) this._cards.pop().remove();
+    while (this._cards.length < n) this._cards.push(el("div", "sk-card"));
 
     const switched = model.currentPlayerIndex !== this._lastActive;
-    for (let i = 0; i < model.players.length; i++) {
-      this._fillCard(this._cards[i], model.players[i], model);
-    }
+    for (let i = 0; i < n; i++) this._fillCard(this._cards[i], model.players[i], model);
 
-    if (switched && this._hadActive && this._cards.length > 1) {
+    if (switched && this._hadActive && n > 1) {
       const card = this._cards[model.currentPlayerIndex];
       if (card && s.animActive !== false) {
         card.classList.remove("sk-turn-in");
@@ -97,7 +97,31 @@
     this._lastActive = model.currentPlayerIndex;
     this._hadActive = true;
 
-    this._renderSides(model);
+    if (sidesLayout) {
+      // cards + history stacked in absolute side columns; big board between
+      this.colL.textContent = "";
+      this.colR.textContent = "";
+      for (let i = 0; i < n; i++) {
+        let col = this.colL;
+        if (n > 1) col = i % 2 ? this.colR : this.colL;
+        else if ((s.historySide || "left") === "right") col = this.colR;
+        col.appendChild(this._cards[i]);
+        const p = model.players[i];
+        if (s.showHistory && p.history && p.history.length) {
+          col.appendChild(this._buildHistory(p, false));
+        }
+      }
+      this.colL.hidden = !this.colL.children.length;
+      this.colR.hidden = !this.colR.children.length;
+      this.sideL.hidden = true;
+      this.sideR.hidden = true;
+    } else {
+      for (const c of this._cards) if (c.parentNode !== this.panel) this.panel.appendChild(c);
+      this.colL.hidden = true;
+      this.colR.hidden = true;
+      this._renderSides(model);
+    }
+    this._positionSides();
 
     const active = model.players[model.currentPlayerIndex] || model.players.find((x) => x.isActive);
     if (s.showDartsRow && active) this._darts(active);
@@ -207,18 +231,12 @@
     this._positionSides();
   };
 
-  SkinOverlay.prototype._fillSide = function (box, p) {
+  // Fills `box` (a .sk-history element) with an optional name + the score rows.
+  SkinOverlay.prototype._fillHistoryBox = function (box, p, withName) {
     const s = this._s;
-    if (!p || !s.showHistory || !p.history || !p.history.length) {
-      box.hidden = true;
-      box.textContent = "";
-      return;
-    }
     const rows = Math.max(1, Math.min(25, (s.historyRows | 0) || 6));
     box.textContent = "";
-    if (this._cards.length > 1) {
-      box.appendChild(el("div", "sk-h-name", p.name));
-    }
+    if (withName) box.appendChild(el("div", "sk-h-name", p.name));
     const rowsWrap = el("div", "sk-h-rows");
     for (const h of p.history.slice(-rows)) {
       const row = el("div", "sk-h-row" + (h.bust ? " is-bust" : ""));
@@ -227,27 +245,64 @@
       rowsWrap.appendChild(row);
     }
     box.appendChild(rowsWrap);
+  };
+
+  SkinOverlay.prototype._buildHistory = function (p, withName) {
+    const box = el("div", "sk-history");
+    this._fillHistoryBox(box, p, withName);
+    return box;
+  };
+
+  SkinOverlay.prototype._fillSide = function (box, p) {
+    const s = this._s;
+    if (!p || !s.showHistory || !p.history || !p.history.length) {
+      box.hidden = true;
+      box.textContent = "";
+      return;
+    }
+    this._fillHistoryBox(box, p, this._cards.length > 1);
     box.hidden = false;
   };
 
   SkinOverlay.prototype._positionSides = function () {
     const b = this._board;
-    const gap = 22;
-    const place = (box, side) => {
-      if (box.hidden) return;
+    const s = this._s || {};
+    const gap = s.sidePanelGap != null ? +s.sidePanelGap : 18;
+    const vw = window.innerWidth || 1920;
+
+    // history-only side boxes: centred vertically on the board
+    const placeBox = (box, side) => {
+      if (!box || box.hidden) return;
       if (!b) { box.style.visibility = "hidden"; return; }
       box.style.visibility = "";
+      box.style.height = "";
       box.style.top = b.cy + "px";
       if (side === "left") {
-        box.style.left = b.left - gap + "px";
+        box.style.left = Math.max(4, b.left - gap) + "px";
         box.style.transform = "translate(-100%, -50%)";
       } else {
-        box.style.left = b.right + gap + "px";
-        box.style.transform = "translateY(-50%)";
+        box.style.left = Math.min(vw - 4, b.right + gap) + "px";
+        box.style.transform = "translate(0, -50%)";
       }
     };
-    place(this.sideL, "left");
-    place(this.sideR, "right");
+    // full-height side columns (Sides layout): match the board's box exactly
+    const placeCol = (col, side) => {
+      if (!col || col.hidden) return;
+      if (!b) { col.style.visibility = "hidden"; return; }
+      col.style.visibility = "";
+      col.style.transform = "none";
+      col.style.top = b.top + "px";
+      col.style.height = b.height + "px";
+      const w = col.offsetWidth || 280;
+      col.style.left = (side === "left"
+        ? Math.max(6, b.left - gap - w)
+        : Math.min(vw - w - 6, b.right + gap)) + "px";
+    };
+
+    placeBox(this.sideL, "left");
+    placeBox(this.sideR, "right");
+    placeCol(this.colL, "left");
+    placeCol(this.colR, "right");
   };
 
   SkinOverlay.prototype._darts = function (p) {

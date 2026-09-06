@@ -13,9 +13,10 @@
       fields: [
         { key: "enabled", label: "Enable custom play UI", type: "toggle", default: true },
         {
-          key: "layout", label: "Layout", type: "select", default: "board",
+          key: "layout", label: "Layout", type: "select", default: "sides",
           options: [
-            { value: "board", label: "Board view (panels + live board)" },
+            { value: "sides", label: "Sides (panels beside a big board, darts on top)" },
+            { value: "board", label: "Board view (panels on top)" },
             { value: "focus", label: "Focus (active player big)" },
             { value: "minimal", label: "Minimal bar" }
           ]
@@ -24,7 +25,9 @@
           options: [{ value: "top", label: "Top" }, { value: "bottom", label: "Bottom" }] },
         { key: "uiScale", label: "Overall scale", type: "range", min: 0.6, max: 1.6, step: 0.02, default: 1, unit: "", cssVar: "--sk-scale" },
         { key: "maxWidth", label: "Max panel-row width", type: "range", min: 700, max: 2400, step: 20, default: 1500, unit: "px", cssVar: "--sk-maxw" },
-        { key: "cardWidth", label: "Player panel width", type: "range", min: 380, max: 1200, step: 10, default: 640, unit: "px", cssVar: "--sk-card-w" },
+        { key: "cardWidth", label: "Player panel width (top layouts)", type: "range", min: 380, max: 1200, step: 10, default: 640, unit: "px", cssVar: "--sk-card-w" },
+        { key: "sidePanelWidth", label: "Side panel width (Sides layout)", type: "range", min: 180, max: 520, step: 5, default: 280, unit: "px", cssVar: "--sk-col-w" },
+        { key: "sidePanelGap", label: "Side panel gap from board", type: "range", min: 0, max: 80, step: 2, default: 18, unit: "px" },
         { key: "hideNative", label: "Hide autodarts' original scoreboard", type: "toggle", default: true },
         { key: "keepBoard", label: "Keep the live dartboard visible", type: "toggle", default: true }
       ]
