@@ -1,0 +1,382 @@
+/* Autodarts Skin — custom play UI (glassy / modern default).
+   All tunables arrive as CSS custom properties on #autodarts-skin-root. */
+
+#autodarts-skin-root {
+  --sk-scale: 1;
+  --sk-maxw: 1500px;
+  --sk-card-w: 640px;
+  --sk-history-w: 150px;
+  --sk-table-row-gap: 6px;
+  --sk-bg: #1d264a;
+  --sk-bg-glow: #2f63a0;
+  --sk-panel: #3a3f78;
+  --sk-panel-active: #4d6fac;
+  --sk-panel-border: #a7c6f2;
+  --sk-panel-op: 46%;
+  --sk-glass-blur: 22px;
+  --sk-table: #8394d6;
+  --sk-dart: #3c4a80;
+  --sk-dart-active: #5b7cbb;
+  --sk-text: #ffffff;
+  --sk-muted: #c3cdec;
+  --sk-accent: #5b9bff;
+  --sk-legs: #3fae4a;
+  --sk-good: #43d17a;
+  --sk-bust: #ff5c5c;
+  --sk-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --sk-score-size: 96px;
+  --sk-score-weight: 800;
+  --sk-name-size: 19px;
+  --sk-stat-size: 13px;
+  --sk-table-size: 13px;
+  --sk-dart-size: 22px;
+  --sk-radius: 22px;
+  --sk-panel-pad: 20px;
+  --sk-gap: 14px;
+  --sk-border-w: 3px;
+  --sk-anim-speed: 1;
+
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  pointer-events: none;
+  font-family: var(--sk-font);
+  color: var(--sk-text);
+  display: flex;
+  flex-direction: column;
+}
+#autodarts-skin-root *, #autodarts-skin-root *::before, #autodarts-skin-root *::after { box-sizing: border-box; }
+#autodarts-skin-root[hidden] { display: none; }
+
+/* ---- backdrop ------------------------------------------------------
+   Page background is handled in the native DOM (see content.js). Our
+   backdrop only adds a soft glow toward the board. */
+#autodarts-skin-root .sk-backdrop {
+  position: absolute; inset: 0; overflow: hidden;
+  background: radial-gradient(120% 90% at 50% 60%, var(--sk-bg-glow), var(--sk-bg) 70%);
+}
+#autodarts-skin-root[data-keep-board="true"] .sk-backdrop {
+  background: radial-gradient(52% 42% at 50% 46%, color-mix(in srgb, var(--sk-bg-glow) 24%, transparent), transparent 72%);
+}
+
+/* ---- stage ---------------------------------------------------------- */
+#autodarts-skin-root .sk-stage {
+  position: relative;
+  pointer-events: none;
+  width: min(100%, var(--sk-maxw));
+  margin: 0 auto;
+  padding: calc(var(--sk-gap) * 1.6) var(--sk-gap) calc(var(--sk-gap) * 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sk-gap);
+  transform: scale(var(--sk-scale));
+  transform-origin: top center;
+}
+#autodarts-skin-root[data-anchor="bottom"] { justify-content: flex-end; }
+#autodarts-skin-root[data-anchor="bottom"] .sk-stage {
+  transform-origin: bottom center;
+  order: 2;
+  flex-direction: column-reverse;
+  padding: calc(var(--sk-gap) * 0.5) var(--sk-gap) calc(var(--sk-gap) * 1.6);
+}
+
+/* ---- panel row ---------------------------------------------------- */
+#autodarts-skin-root .sk-panel {
+  display: flex;
+  gap: var(--sk-gap);
+  justify-content: center;
+  align-items: stretch;
+  width: 100%;
+}
+
+#autodarts-skin-root .sk-card {
+  position: relative;
+  overflow: hidden;
+  flex: 0 1 var(--sk-card-w);
+  max-width: var(--sk-card-w);
+  min-width: 0;
+  min-height: 176px;
+  display: flex;
+  align-items: center;
+  padding: var(--sk-panel-pad) calc(var(--sk-panel-pad) * 1.2);
+  border-radius: var(--sk-radius);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02) 40%),
+    color-mix(in srgb, var(--sk-panel) var(--sk-panel-op), transparent);
+  -webkit-backdrop-filter: blur(var(--sk-glass-blur)) saturate(1.3);
+  backdrop-filter: blur(var(--sk-glass-blur)) saturate(1.3);
+  box-shadow: 0 30px 80px -12px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+#autodarts-skin-root .sk-card::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(120% 80% at 12% -10%, rgba(255, 255, 255, 0.15), transparent 52%);
+}
+#autodarts-skin-root .sk-card.is-active {
+  border-color: color-mix(in srgb, var(--sk-panel-border) 55%, transparent);
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.17), rgba(255, 255, 255, 0.03) 42%),
+    color-mix(in srgb, var(--sk-panel-active) calc(var(--sk-panel-op) + 6%), transparent);
+  box-shadow: 0 34px 92px -10px rgba(0, 0, 0, 0.62), inset 0 1px 0 rgba(255, 255, 255, 0.24),
+              0 0 0 1px color-mix(in srgb, var(--sk-panel-border) 30%, transparent);
+}
+#autodarts-skin-root .sk-card.is-winner { border-color: var(--sk-good); }
+
+/* ---- card body ------------------------------------------------- */
+#autodarts-skin-root .sk-card-main {
+  width: 100%;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+#autodarts-skin-root .sk-score {
+  order: 2;
+  font-size: var(--sk-score-size);
+  font-weight: var(--sk-score-weight);
+  line-height: 0.92;
+  padding-top: 0.04em;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.45);
+}
+#autodarts-skin-root .sk-card.evt-bust .sk-score { color: var(--sk-bust); }
+#autodarts-skin-root .sk-card.evt-checkout .sk-score { color: var(--sk-good); }
+
+#autodarts-skin-root .sk-idrow {
+  order: 1;
+  display: flex; align-items: center; gap: 9px;
+  max-width: 100%;
+}
+#autodarts-skin-root .sk-legs {
+  background: var(--sk-legs); color: #04210a;
+  font-weight: 800; font-size: calc(var(--sk-name-size) * 0.88);
+  min-width: 1.7em; text-align: center;
+  padding: 2px 6px; border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  font-variant-numeric: tabular-nums; flex: none;
+}
+#autodarts-skin-root .sk-avatar {
+  width: 1.7em; height: 1.7em; border-radius: 50%;
+  font-size: var(--sk-name-size); object-fit: cover; flex: none;
+}
+#autodarts-skin-root .sk-avatar-ph {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, 0.16); font-weight: 700; font-size: calc(var(--sk-name-size) * 0.8);
+}
+#autodarts-skin-root .sk-name {
+  font-size: calc(var(--sk-name-size) * 1.08);
+  font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+#autodarts-skin-root .sk-flag { font-size: var(--sk-name-size); line-height: 1; flex: none; }
+#autodarts-skin-root .sk-skill {
+  font-size: var(--sk-stat-size); font-weight: 800; letter-spacing: 0.03em;
+  color: var(--sk-text); background: rgba(255, 255, 255, 0.13);
+  padding: 1px 8px; border-radius: 999px; flex: none;
+}
+
+#autodarts-skin-root .sk-statline {
+  order: 3;
+  font-size: var(--sk-stat-size); color: var(--sk-muted);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85; margin-top: 3px;
+  max-width: 100%;
+}
+#autodarts-skin-root .sk-checkout {
+  order: 4;
+  font-size: var(--sk-stat-size); color: var(--sk-good); font-weight: 800;
+  letter-spacing: 0.04em;
+}
+#autodarts-skin-root .sk-stats {
+  order: 5;
+  display: flex; flex-wrap: wrap; gap: 3px 14px; justify-content: center;
+  font-size: var(--sk-stat-size); color: var(--sk-muted);
+}
+#autodarts-skin-root .sk-stats b { color: var(--sk-text); font-variant-numeric: tabular-nums; }
+
+/* ---- score-history table (positioned beside the board) --------- */
+#autodarts-skin-root .sk-history {
+  display: flex; flex-direction: column;
+  min-width: var(--sk-history-w);
+  padding: 16px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.17), rgba(255, 255, 255, 0.03) 42%),
+    color-mix(in srgb, var(--sk-panel-active) calc(var(--sk-panel-op) + 6%), transparent);
+  -webkit-backdrop-filter: blur(calc(var(--sk-glass-blur) * 0.7));
+  backdrop-filter: blur(calc(var(--sk-glass-blur) * 0.7));
+  border-radius: var(--sk-radius);
+  box-shadow: 0 28px 70px -14px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  font-size: var(--sk-table-size);
+  font-variant-numeric: tabular-nums;
+}
+#autodarts-skin-root .sk-history.sk-side {
+  position: absolute;
+  z-index: 4;
+  pointer-events: none;
+  max-height: 82vh;
+  overflow: hidden;
+}
+#autodarts-skin-root .sk-h-name {
+  flex: none;
+  text-align: center;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0 8px 10px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+#autodarts-skin-root .sk-h-rows {
+  flex: 1;
+  display: flex; flex-direction: column; justify-content: flex-start;
+  gap: var(--sk-table-row-gap);
+}
+#autodarts-skin-root .sk-h-row { display: grid; grid-template-columns: 1fr 1fr; align-items: center; }
+#autodarts-skin-root .sk-h-scored { text-align: right; padding: 0 12px; opacity: 0.62; }
+#autodarts-skin-root .sk-h-left { text-align: right; padding: 0 12px; font-weight: 700; border-left: 1px solid rgba(255, 255, 255, 0.16); }
+#autodarts-skin-root .sk-h-row.is-bust { position: relative; opacity: 0.7; }
+#autodarts-skin-root .sk-h-row.is-bust::after {
+  content: ""; position: absolute; left: 6px; right: 6px; top: 50%;
+  height: 1px; background: var(--sk-bust); transform: rotate(-8deg);
+}
+
+/* ---- darts row ------------------------------------------------ */
+#autodarts-skin-root .sk-darts-row {
+  display: flex; gap: var(--sk-gap);
+  width: 100%;
+  max-width: var(--sk-card-w);
+}
+#autodarts-skin-root .sk-dart {
+  flex: 1 1 0; text-align: center;
+  padding: 13px 6px;
+  min-height: calc(var(--sk-dart-size) + 26px);
+  line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: calc(var(--sk-radius) * 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: color-mix(in srgb, var(--sk-dart) 42%, transparent);
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  box-shadow: 0 14px 34px -8px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  font-size: var(--sk-dart-size); font-weight: 800; letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+#autodarts-skin-root .sk-dart.is-thrown { background: color-mix(in srgb, var(--sk-dart-active) 58%, transparent); }
+#autodarts-skin-root .sk-dart.is-suggest { font-style: italic; color: var(--sk-muted); background: color-mix(in srgb, var(--sk-dart) 30%, transparent); }
+#autodarts-skin-root .sk-dart.is-empty { background: color-mix(in srgb, var(--sk-dart) 22%, transparent); }
+
+/* ---- pager -------------------------------------------------- */
+#autodarts-skin-root .sk-pager { display: flex; gap: 8px; justify-content: center; }
+#autodarts-skin-root .sk-pg {
+  min-width: 1.9em; text-align: center; padding: 2px 6px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: var(--sk-stat-size); color: var(--sk-muted);
+}
+#autodarts-skin-root .sk-pg.is-cur { background: var(--sk-accent); color: #04101f; font-weight: 800; }
+
+/* ---- layout: minimal ------------------------------------- */
+#autodarts-skin-root[data-layout="minimal"] .sk-history,
+#autodarts-skin-root[data-layout="minimal"] .sk-darts-row,
+#autodarts-skin-root[data-layout="minimal"] .sk-pager,
+#autodarts-skin-root[data-layout="minimal"] .sk-statline { display: none; }
+#autodarts-skin-root[data-layout="minimal"] .sk-card { min-height: 0; padding: 10px 18px; }
+#autodarts-skin-root[data-layout="minimal"] .sk-card-main { flex-direction: row; gap: 16px; justify-content: space-between; }
+#autodarts-skin-root[data-layout="minimal"] .sk-idrow { max-width: none; }
+#autodarts-skin-root[data-layout="minimal"] .sk-score { font-size: calc(var(--sk-score-size) * 0.42); }
+
+/* ---- layout: focus -------------------------------------- */
+#autodarts-skin-root[data-layout="focus"] .sk-card:not(.is-active) { flex: 0 1 30%; min-height: 0; }
+#autodarts-skin-root[data-layout="focus"] .sk-card:not(.is-active) .sk-score { font-size: calc(var(--sk-score-size) * 0.5); color: var(--sk-muted); }
+#autodarts-skin-root[data-layout="focus"] .sk-card:not(.is-active) .sk-history { display: none; }
+#autodarts-skin-root[data-layout="focus"] .sk-card.is-active .sk-score { font-size: calc(var(--sk-score-size) * 1.3); }
+
+/* ---- animations ---------------------------------------- */
+#autodarts-skin-root .sk-card { will-change: transform; }
+
+#autodarts-skin-root .sk-card.sk-turn-in {
+  animation: sk-turn-pop calc(0.62s / var(--sk-anim-speed)) cubic-bezier(0.22, 1, 0.36, 1);
+}
+#autodarts-skin-root .sk-card.sk-turn-in::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.35) 48%, transparent 66%);
+  animation: sk-sweep calc(0.72s / var(--sk-anim-speed)) ease-out;
+}
+@keyframes sk-turn-pop {
+  0%   { transform: scale(0.94); box-shadow: 0 0 0 0 color-mix(in srgb, var(--sk-panel-border) 70%, transparent); }
+  45%  { transform: scale(1.035); }
+  70%  { box-shadow: 0 20px 60px -8px rgba(0, 0, 0, 0.55), 0 0 40px 6px color-mix(in srgb, var(--sk-panel-border) 45%, transparent); }
+  100% { transform: scale(1); }
+}
+@keyframes sk-sweep {
+  0%   { transform: translateX(-60%); opacity: 0; }
+  15%  { opacity: 1; }
+  100% { transform: translateX(60%); opacity: 0; }
+}
+
+#autodarts-skin-root .sk-score.sk-score-bump {
+  animation: sk-bump calc(0.4s / var(--sk-anim-speed)) ease-out;
+}
+@keyframes sk-bump {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.09); color: var(--sk-accent); text-shadow: 0 0 26px color-mix(in srgb, var(--sk-accent) 60%, transparent); }
+  100% { transform: scale(1); }
+}
+
+#autodarts-skin-root .sk-banner {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--sk-gap) * 1.4);
+  transform: translateX(-50%);
+  z-index: 5;
+  pointer-events: none;
+  padding: 10px 26px;
+  border-radius: 999px;
+  font-size: calc(var(--sk-name-size) * 1.15);
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sk-text);
+  background: color-mix(in srgb, var(--sk-panel-active) 70%, transparent);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.6);
+}
+#autodarts-skin-root[data-anchor="bottom"] .sk-banner { top: auto; bottom: calc(var(--sk-gap) * 1.4); }
+#autodarts-skin-root .sk-banner.sk-banner-in {
+  animation: sk-banner calc(1.6s / var(--sk-anim-speed)) ease-in-out both;
+}
+@keyframes sk-banner {
+  0%   { opacity: 0; transform: translate(-50%, -14px) scale(0.9); }
+  14%  { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  80%  { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -8px) scale(0.96); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #autodarts-skin-root .sk-card.sk-turn-in,
+  #autodarts-skin-root .sk-card.sk-turn-in::after,
+  #autodarts-skin-root .sk-score.sk-score-bump,
+  #autodarts-skin-root .sk-banner.sk-banner-in { animation-duration: 0.01s; }
+}
+
+/* ---- preview scoping (options page) --------------------- */
+#autodarts-skin-root.is-preview { position: absolute; z-index: 1; }
+#autodarts-skin-root.is-preview .sk-stage { transform: scale(calc(var(--sk-scale) * var(--sk-preview-fit, 0.5))); }
+#autodarts-skin-root.is-preview .sk-side {
+  font-size: 8px;
+  min-width: 4.6em;
+  padding: 5px 3px;
+  border-radius: 7px;
+}
+#autodarts-skin-root.is-preview .sk-h-name { font-size: 8px; padding: 0 4px 3px; margin-bottom: 3px; }

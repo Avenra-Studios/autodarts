@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Autodarts Skin — standalone preview</title>
+  <link rel="stylesheet" href="../src/overlay/overlay.css" />
+  <style>
+    html, body { margin: 0; height: 100%; background: #10182c; font-family: system-ui, sans-serif; color: #cdd6ee; }
+    #board {
+      position: fixed; inset: 0; z-index: 1;
+      background: radial-gradient(120% 90% at 50% 62%, #2f63a0, #1d264a 70%);
+      display: flex; align-items: center; justify-content: center;
+    }
+    #board .disc { width: 42vmin; height: 42vmin; border-radius: 50%;
+      background: repeating-conic-gradient(#111 0 30deg, #e9e4d4 30deg 60deg);
+      box-shadow: 0 0 60px #6cf7c8aa; opacity: 0.85; }
+    #panel { position: fixed; right: 14px; bottom: 14px; z-index: 2147483646;
+      background: #161c2e; border: 1px solid #2a3450; border-radius: 10px; padding: 12px 14px;
+      display: grid; grid-template-columns: auto 1fr; gap: 6px 10px; font-size: 12px; width: 300px; }
+    #panel input[type=range] { width: 100%; }
+    #panel h3 { grid-column: 1/-1; margin: 4px 0 2px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #8b96b5; }
+  </style>
+</head>
+<body>
+  <div id="board"><div class="disc"></div></div>
+  <div id="panel"></div>
+
+  <script src="../src/common/defaults.js"></script>
+  <script src="../src/common/state.js"></script>
+  <script src="../src/overlay/overlay.js"></script>
+  <script>
+    const settings = { ...window.SKIN_DEFAULTS };
+    const overlay = new window.SkinOverlay();
+    overlay.mount(document.body);
+    function draw() {
+      overlay.applySettings(settings, window.SKIN_SCHEMA, window.skinCssValue);
+      overlay.render(window.skinMockState());
+    }
+    // quick controls: layout + a few key knobs
+    const panel = document.getElementById("panel");
+    const pick = ["layout", "scoreSize", "nameSize", "uiScale", "radius", "gap", "panelPad",
+      "historyRows", "colPanel", "colPanelActive", "colBgGlow", "colLegs", "colAccent",
+      "hideNative", "keepBoard", "showHistory", "showDartsRow"];
+    for (const g of window.SKIN_SCHEMA) for (const f of g.fields) {
+      if (!pick.includes(f.key)) continue;
+      const lab = document.createElement("label"); lab.textContent = f.label;
+      const wrap = document.createElement("div");
+      let inp;
+      if (f.type === "select") { inp = document.createElement("select");
+        for (const o of f.options) { const op = document.createElement("option"); op.value = o.value; op.textContent = o.label; inp.append(op); } inp.value = settings[f.key]; }
+      else if (f.type === "toggle") { inp = document.createElement("input"); inp.type = "checkbox"; inp.checked = settings[f.key]; }
+      else if (f.type === "color") { inp = document.createElement("input"); inp.type = "color"; inp.value = settings[f.key]; }
+      else { inp = document.createElement("input"); inp.type = "range"; inp.min = f.min; inp.max = f.max; inp.step = f.step; inp.value = settings[f.key]; }
+      inp.oninput = () => { settings[f.key] = f.type === "toggle" ? inp.checked : (f.type === "range" ? parseFloat(inp.value) : inp.value); draw(); };
+      wrap.append(inp); panel.append(lab, wrap);
+    }
+    draw();
+  </script>
+</body>
+</html>

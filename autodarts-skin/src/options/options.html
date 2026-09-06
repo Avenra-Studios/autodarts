@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Autodarts Skin — Settings</title>
+  <link rel="stylesheet" href="../overlay/overlay.css" />
+  <link rel="stylesheet" href="options.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>Autodarts Skin</h1>
+    <div class="topbar-actions">
+      <button id="btn-export" type="button">Export</button>
+      <button id="btn-import" type="button">Import</button>
+      <button id="btn-reset" type="button" class="danger">Reset all</button>
+      <input id="file-import" type="file" accept="application/json" hidden />
+    </div>
+  </header>
+
+  <main>
+    <section id="controls">
+      <div class="group" id="devbox">
+        <h2>Developer — capture match data</h2>
+        <p class="dev-hint">Play a match on play.autodarts.com, come back here, click Load. Send the text to whoever is wiring up the data mapping.</p>
+        <div class="dev-actions">
+          <button id="cap-load" type="button">Load latest capture</button>
+          <button id="cap-copy" type="button">Copy</button>
+          <button id="cap-clear" type="button" class="danger">Clear</button>
+          <span id="cap-status" class="dev-status"></span>
+        </div>
+        <textarea id="cap-text" readonly rows="8" placeholder="(nothing captured yet)"></textarea>
+      </div>
+    </section>
+    <aside id="preview-wrap">
+      <div class="preview-label">Live preview</div>
+      <div id="preview" class="sk-preview-box"></div>
+      <label class="preview-toggle">
+        <input type="checkbox" id="preview-checkout" checked /> simulate a live turn (darts + checkout)
+      </label>
+    </aside>
+  </main>
+
+  <p class="saved" id="saved-hint" hidden>Saved</p>
+
+  <script src="../common/defaults.js"></script>
+  <script src="../common/state.js"></script>
+  <script src="../overlay/overlay.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

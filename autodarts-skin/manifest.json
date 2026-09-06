@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "Autodarts Skin",
+  "version": "0.1.0",
+  "description": "Custom, fully configurable play-screen UI for play.autodarts.com.",
+  "permissions": ["storage"],
+  "host_permissions": ["https://play.autodarts.com/*"],
+  "options_ui": {
+    "page": "src/options/options.html",
+    "open_in_tab": true
+  },
+  "action": {
+    "default_title": "Autodarts Skin settings"
+  },
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://play.autodarts.com/*"],
+      "js": ["src/hook.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://play.autodarts.com/*"],
+      "js": ["src/common/defaults.js", "src/common/state.js", "src/overlay/overlay.js", "src/content.js"],
+      "css": ["src/overlay/overlay.css"],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/*"],
+      "matches": ["https://play.autodarts.com/*"]
+    }
+  ]
+}
