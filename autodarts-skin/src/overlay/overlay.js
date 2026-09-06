@@ -69,14 +69,22 @@
 
   SkinOverlay.prototype.setVisible = function (v) { this.rootEl.hidden = !v; };
 
-  SkinOverlay.prototype.setEditing = function (idx) {
+  SkinOverlay.prototype.setEditing = function (idx, seg) {
     this._editing = typeof idx === "number" ? idx : -1;
     const on = this._editing >= 0;
     this.rootEl.dataset.editing = String(on);
     this.editLabel.hidden = !on;
-    if (on) this.editLabel.textContent = "Editing dart " + (this._editing + 1) + " — tap where it really landed on the board";
+    if (on) {
+      this.editLabel.textContent = seg
+        ? "Dart " + (this._editing + 1) + " → " + seg + "   ·   tap the board to adjust, then OK"
+        : "Editing dart " + (this._editing + 1) + " — tap where it really landed on the board";
+    }
     const slots = this.dartsRow.children;
-    for (let i = 0; i < slots.length; i++) slots[i].classList.toggle("is-editing", i === this._editing);
+    for (let i = 0; i < slots.length; i++) {
+      const s = slots[i];
+      s.classList.toggle("is-editing", i === this._editing);
+      if (i === this._editing && seg) s.textContent = seg;
+    }
   };
 
 

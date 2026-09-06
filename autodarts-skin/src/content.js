@@ -17,15 +17,14 @@
   // autodarts' own per-dart correction (then you click the real spot on the
   // board and press OK — all while the skin stays on).
   let editingDart = -1;
-  overlay.onDartClick = (idx) => {
-    try {
-      const wrap = document.querySelector(
-        '[class*="container-type:size"] > div[class*="grid-rows-"] > *:first-child .justify-evenly'
-      );
-      const dart = wrap && wrap.children[idx];
-      if (dart) { dart.click(); editingDart = idx; rerender(); }
-    } catch (_) {}
-  };
+  let editSeg = "";
+  let editPoll = null;
+  function nativeDartEl(idx) {
+    const wrap = document.querySelector(
+      '[class*="container-type:size"] > div[class*="grid-rows-"] > *:first-child .justify-evenly'
+    );
+    return (wrap && wrap.children[idx]) || null;
+  }
   function inCorrectionMode() {
     try {
       const ctl = document.querySelector(
@@ -34,6 +33,29 @@
       return !!ctl && /cancel|bouncer/i.test(ctl.textContent || "");
     } catch (_) { return false; }
   }
+  function stopEditing() {
+    editingDart = -1; editSeg = "";
+    clearInterval(editPoll); editPoll = null;
+    rerender();
+  }
+  overlay.onDartClick = (idx) => {
+    try {
+      const dart = nativeDartEl(idx);
+      if (!dart) return;
+      dart.click();
+      editingDart = idx;
+      editSeg = "";
+      rerender();
+      clearInterval(editPoll);
+      editPoll = setInterval(() => {
+        if (!extAlive()) { clearInterval(editPoll); return; }
+        if (editingDart < 0 || !inCorrectionMode()) { stopEditing(); return; }
+        const d = nativeDartEl(editingDart);
+        const t = d ? (d.textContent || "").replace(/\s+/g, "") : "";
+        if (t && t !== editSeg) { editSeg = t; overlay.setEditing(editingDart, editSeg); }
+      }, 180);
+    } catch (_) {}
+  };
 
   // ---- native play-view hiding -------------------------------------
   // autodarts uses volatile Tailwind classes, so we hide structurally via
@@ -201,7 +223,7 @@
   function rerender() {
     overlay.applySettings(settings, window.SKIN_SCHEMA, window.skinCssValue);
     overlay.render(liveModel());
-    overlay.setEditing(editingDart);
+    overlay.setEditing(editingDart, editSeg);
     overlay.setBoard(onPlayRoute() ? measureBoard() : null);
     updateNativeStyle();
     updatePageBg();
@@ -249,10 +271,10 @@
     try {
       if (location.pathname !== lastPath) {
         lastPath = location.pathname;
-        editingDart = -1;
+        if (editingDart >= 0) stopEditing();
         rerender();
       }
-      if (editingDart >= 0 && !inCorrectionMode()) { editingDart = -1; rerender(); }
+      if (editingDart >= 0 && !inCorrectionMode()) stopEditing();
       updateNativeStyle(); // recompute reserved height as the panel grows
       overlay.setBoard(onPlayRoute() ? measureBoard() : null); // board can resize
       updatePageBg();
