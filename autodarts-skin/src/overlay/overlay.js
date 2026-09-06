@@ -29,8 +29,18 @@
     this.colR = el("div", "sk-col sk-col-r");
     this.colL.hidden = true;
     this.colR.hidden = true;
-    this.stage.append(this.panel, this.dartsRow, this.pager);
+    this.editLabel = el("div", "sk-edit-label");
+    this.editLabel.hidden = true;
+    this.stage.append(this.panel, this.dartsRow, this.editLabel, this.pager);
     this.rootEl.append(this.backdrop, this.stage, this.banner, this.sideL, this.sideR, this.colL, this.colR);
+    this._editing = -1;
+    // click a thrown-dart slot -> ask the host to open autodarts' correction for it
+    this.dartsRow.addEventListener("click", (e) => {
+      const slot = e.target.closest(".sk-dart");
+      if (!slot || !slot.classList.contains("is-thrown")) return;
+      const idx = Array.prototype.indexOf.call(this.dartsRow.children, slot);
+      if (idx >= 0 && this.onDartClick) this.onDartClick(idx);
+    });
     this._s = {};
     this._cards = [];
     this._lastActive = -1;
@@ -58,6 +68,17 @@
   };
 
   SkinOverlay.prototype.setVisible = function (v) { this.rootEl.hidden = !v; };
+
+  SkinOverlay.prototype.setEditing = function (idx) {
+    this._editing = typeof idx === "number" ? idx : -1;
+    const on = this._editing >= 0;
+    this.rootEl.dataset.editing = String(on);
+    this.editLabel.hidden = !on;
+    if (on) this.editLabel.textContent = "Editing dart " + (this._editing + 1) + " — tap where it really landed on the board";
+    const slots = this.dartsRow.children;
+    for (let i = 0; i < slots.length; i++) slots[i].classList.toggle("is-editing", i === this._editing);
+  };
+
 
   SkinOverlay.prototype.stageHeight = function () {
     if (this.rootEl.hidden || !this.stage) return 0;
@@ -173,7 +194,18 @@
       scoreEl.classList.add("sk-score-bump");
     }
     this._prevScore[p.index] = p.score;
-    main.appendChild(scoreEl);
+
+    const scoreRow = el("div", "sk-score-row");
+    scoreRow.appendChild(scoreEl);
+    if (s.showCheckout !== false && p.checkoutDarts && p.checkoutDarts.length) {
+      const ck = el("div", "sk-checkout");
+      for (const d of p.checkoutDarts) {
+        const name = typeof d === "string" ? d : d.name;
+        if (name) ck.appendChild(el("span", "sk-ck-dart", name));
+      }
+      if (ck.children.length) scoreRow.appendChild(ck);
+    }
+    main.appendChild(scoreRow);
 
     const id = el("div", "sk-idrow");
     if (s.showLegs) {
@@ -197,14 +229,6 @@
     }
     if (s.showSkill && p.skill) id.appendChild(el("span", "sk-skill", p.skill));
     main.appendChild(id);
-
-    if (s.showCheckout !== false && p.checkoutDarts && p.checkoutDarts.length) {
-      const path = p.checkoutDarts
-        .map((d) => (typeof d === "string" ? d : d.name))
-        .filter(Boolean)
-        .join("  ");
-      if (path) main.appendChild(el("div", "sk-checkout", path));
-    }
 
     if (s.showStatLine) {
       const bits = [];

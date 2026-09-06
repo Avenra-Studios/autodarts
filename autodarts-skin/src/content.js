@@ -13,6 +13,28 @@
   const overlay = new window.SkinOverlay();
   let settings = { ...window.SKIN_DEFAULTS };
 
+  // --- quick correction: clicking a thrown dart in our row triggers
+  // autodarts' own per-dart correction (then you click the real spot on the
+  // board and press OK — all while the skin stays on).
+  let editingDart = -1;
+  overlay.onDartClick = (idx) => {
+    try {
+      const wrap = document.querySelector(
+        '[class*="container-type:size"] > div[class*="grid-rows-"] > *:first-child .justify-evenly'
+      );
+      const dart = wrap && wrap.children[idx];
+      if (dart) { dart.click(); editingDart = idx; rerender(); }
+    } catch (_) {}
+  };
+  function inCorrectionMode() {
+    try {
+      const ctl = document.querySelector(
+        '[class*="container-type:size"] > div[class*="grid-rows-"] > *:last-child'
+      );
+      return !!ctl && /cancel|bouncer/i.test(ctl.textContent || "");
+    } catch (_) { return false; }
+  }
+
   // ---- native play-view hiding -------------------------------------
   // autodarts uses volatile Tailwind classes, so we hide structurally via
   // a stylesheet: the gameplay flex row has one child holding the board
@@ -179,6 +201,7 @@
   function rerender() {
     overlay.applySettings(settings, window.SKIN_SCHEMA, window.skinCssValue);
     overlay.render(liveModel());
+    overlay.setEditing(editingDart);
     overlay.setBoard(onPlayRoute() ? measureBoard() : null);
     updateNativeStyle();
     updatePageBg();
@@ -226,8 +249,10 @@
     try {
       if (location.pathname !== lastPath) {
         lastPath = location.pathname;
+        editingDart = -1;
         rerender();
       }
+      if (editingDart >= 0 && !inCorrectionMode()) { editingDart = -1; rerender(); }
       updateNativeStyle(); // recompute reserved height as the panel grows
       overlay.setBoard(onPlayRoute() ? measureBoard() : null); // board can resize
       updatePageBg();

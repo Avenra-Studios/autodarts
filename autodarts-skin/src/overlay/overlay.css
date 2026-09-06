@@ -273,19 +273,33 @@
   opacity: 0.85; margin-top: 3px;
   max-width: 100%;
 }
+#autodarts-skin-root .sk-score-row {
+  order: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  width: 100%;
+}
 #autodarts-skin-root .sk-checkout {
-  order: 4;
-  font-size: calc(var(--sk-stat-size) * 1.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
   color: var(--sk-good);
   font-weight: 800;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.03em;
   font-variant-numeric: tabular-nums;
-  padding: 3px 12px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--sk-good) 16%, transparent);
-  border: 1px solid color-mix(in srgb, var(--sk-good) 40%, transparent);
+  padding: 5px 9px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--sk-good) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sk-good) 38%, transparent);
 }
-#autodarts-skin-root .sk-checkout::before { content: "✓ "; opacity: 0.7; }
+#autodarts-skin-root .sk-ck-dart {
+  font-size: calc(var(--sk-stat-size) * 1.05);
+  line-height: 1.15;
+}
 #autodarts-skin-root .sk-stats {
   order: 5;
   display: flex; flex-wrap: wrap; gap: 3px 14px; justify-content: center;
@@ -342,6 +356,38 @@
   display: flex; gap: var(--sk-gap);
   width: 100%;
   max-width: var(--sk-card-w);
+}
+#autodarts-skin-root .sk-dart.is-thrown {
+  pointer-events: auto;
+  cursor: pointer;
+}
+#autodarts-skin-root .sk-dart.is-thrown:hover {
+  border-color: var(--sk-accent);
+  box-shadow: 0 14px 34px -8px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12),
+              0 0 0 2px color-mix(in srgb, var(--sk-accent) 50%, transparent);
+}
+#autodarts-skin-root[data-editing="true"] .sk-dart:not(.is-editing) { opacity: 0.4; }
+#autodarts-skin-root .sk-dart.is-editing {
+  border-color: var(--sk-accent);
+  color: var(--sk-accent);
+  animation: sk-edit-pulse 1.3s ease-in-out infinite;
+}
+@keyframes sk-edit-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px var(--sk-accent), 0 0 18px -2px color-mix(in srgb, var(--sk-accent) 55%, transparent); }
+  50%      { box-shadow: 0 0 0 3px var(--sk-accent), 0 0 34px 2px color-mix(in srgb, var(--sk-accent) 75%, transparent); }
+}
+#autodarts-skin-root .sk-edit-label {
+  align-self: center;
+  margin-top: 4px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: var(--sk-stat-size);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: #04101f;
+  background: var(--sk-accent);
+  box-shadow: 0 10px 30px -6px color-mix(in srgb, var(--sk-accent) 60%, transparent);
+  text-align: center;
 }
 #autodarts-skin-root .sk-dart {
   flex: 1 1 0; text-align: center;
