@@ -26,8 +26,8 @@
         { key: "uiScale", label: "Overall scale", type: "range", min: 0.6, max: 1.6, step: 0.02, default: 1, unit: "", cssVar: "--sk-scale" },
         { key: "maxWidth", label: "Max panel-row width", type: "range", min: 700, max: 2400, step: 20, default: 1500, unit: "px", cssVar: "--sk-maxw" },
         { key: "cardWidth", label: "Player panel width (top layouts)", type: "range", min: 380, max: 1200, step: 10, default: 640, unit: "px", cssVar: "--sk-card-w" },
-        { key: "sidePanelWidth", label: "Side panel width (Sides layout)", type: "range", min: 180, max: 520, step: 5, default: 280, unit: "px", cssVar: "--sk-col-w" },
-        { key: "sidePanelGap", label: "Side panel gap from board", type: "range", min: 0, max: 80, step: 2, default: 18, unit: "px" },
+        { key: "sidePanelWidth", label: "Side panel width (Sides layout)", type: "range", min: 180, max: 720, step: 5, default: 400, unit: "px", cssVar: "--sk-col-w" },
+        { key: "sidePanelGap", label: "Side panel gap from board", type: "range", min: 0, max: 400, step: 4, default: 120, unit: "px" },
         { key: "hideNative", label: "Hide autodarts' original scoreboard", type: "toggle", default: true },
         { key: "keepBoard", label: "Keep the live dartboard visible", type: "toggle", default: true }
       ]
@@ -40,6 +40,7 @@
         { key: "colPanel", label: "Panel", type: "color", default: "#3a3f78", cssVar: "--sk-panel" },
         { key: "colPanelActive", label: "Active panel", type: "color", default: "#4d6fac", cssVar: "--sk-panel-active" },
         { key: "colPanelBorder", label: "Active panel border", type: "color", default: "#a7c6f2", cssVar: "--sk-panel-border" },
+        { key: "colTurn", label: "Whose-turn highlight colour (glow style)", type: "color", default: "#4be3b0", cssVar: "--sk-turn" },
         { key: "colTable", label: "History table lines", type: "color", default: "#8394d6", cssVar: "--sk-table" },
         { key: "colDart", label: "Dart box", type: "color", default: "#3c4a80", cssVar: "--sk-dart" },
         { key: "colDartActive", label: "Dart box (current)", type: "color", default: "#5b7cbb", cssVar: "--sk-dart-active" },
@@ -96,7 +97,7 @@
         { key: "showLegDarts", label: "  · darts thrown this leg", type: "toggle", default: true },
         { key: "showMatchAverage", label: "  · match average", type: "toggle", default: false },
         { key: "showHistory", label: "Score-history table (beside the board)", type: "toggle", default: true },
-        { key: "historyRows", label: "History rows", type: "range", min: 3, max: 25, step: 1, default: 16, unit: "" },
+        { key: "historyRows", label: "History rows (max shown)", type: "range", min: 3, max: 60, step: 1, default: 40, unit: "" },
         { key: "historyWidth", label: "History table width", type: "range", min: 90, max: 360, step: 5, default: 180, unit: "px", cssVar: "--sk-history-w" },
         {
           key: "historySide", label: "Solo history side", type: "select", default: "left",
@@ -104,7 +105,8 @@
         },
         { key: "showDartsRow", label: "Current-turn darts row", type: "toggle", default: true },
         { key: "showCheckoutDarts", label: "Checkout darts in the darts row", type: "toggle", default: true },
-        { key: "showCheckout", label: "Checkout hint under the score", type: "toggle", default: false },
+        { key: "dartValues", label: "Darts row shows points (60), not T20", type: "toggle", default: true },
+        { key: "showCheckout", label: "Checkout hint under the score (≤170)", type: "toggle", default: true },
         { key: "showPager", label: "Leg pager (1 2 3)", type: "toggle", default: true }
       ]
     },
@@ -122,6 +124,16 @@
       fields: [
         { key: "animActive", label: "Animate turn changes", type: "toggle", default: true },
         { key: "showTurnBanner", label: "Player-name banner on turn change", type: "toggle", default: true },
+        {
+          key: "turnHighlight", label: "Whose-turn highlight style", type: "select", default: "rainbow",
+          options: [
+            { value: "rainbow", label: "Rainbow ring around the panel" },
+            { value: "glow", label: "Coloured glow ring" },
+            { value: "none", label: "None (just the border)" }
+          ]
+        },
+        { key: "showTurnFlag", label: "“TO THROW” flag on the active player", type: "toggle", default: false },
+        { key: "dimInactive", label: "Dim inactive players", type: "toggle", default: true },
         { key: "animScore", label: "Animate score changes", type: "toggle", default: true },
         { key: "animSpeed", label: "Animation speed", type: "range", min: 0.4, max: 2, step: 0.1, default: 1, unit: "", cssVar: "--sk-anim-speed" }
       ]

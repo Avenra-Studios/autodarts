@@ -13,6 +13,7 @@
   --sk-panel: #3a3f78;
   --sk-panel-active: #4d6fac;
   --sk-panel-border: #a7c6f2;
+  --sk-turn: #4be3b0;
   --sk-panel-op: 46%;
   --sk-glass-blur: 22px;
   --sk-table: #8394d6;
@@ -116,20 +117,102 @@
   background: radial-gradient(120% 80% at 12% -10%, rgba(255, 255, 255, 0.15), transparent 52%);
 }
 #autodarts-skin-root .sk-card.is-active {
-  border-color: color-mix(in srgb, var(--sk-panel-border) 55%, transparent);
+  overflow: visible;
   background:
-    linear-gradient(160deg, rgba(255, 255, 255, 0.17), rgba(255, 255, 255, 0.03) 42%),
-    color-mix(in srgb, var(--sk-panel-active) calc(var(--sk-panel-op) + 6%), transparent);
-  box-shadow: 0 34px 92px -10px rgba(0, 0, 0, 0.62), inset 0 1px 0 rgba(255, 255, 255, 0.24),
-              0 0 0 1px color-mix(in srgb, var(--sk-panel-border) 30%, transparent);
+    linear-gradient(160deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.04) 42%),
+    color-mix(in srgb, var(--sk-panel-active) calc(var(--sk-panel-op) + 10%), transparent);
+  transform: scale(1.03);
+  z-index: 6;
 }
-#autodarts-skin-root .sk-card.is-winner { border-color: var(--sk-good); }
+
+/* -- glow-ring style -- */
+#autodarts-skin-root[data-turn="glow"] .sk-card.is-active {
+  border-color: var(--sk-turn);
+  animation: sk-turn-glow 2.4s ease-in-out infinite;
+}
+@keyframes sk-turn-glow {
+  0%, 100% { box-shadow: 0 34px 92px -10px rgba(0,0,0,.62), inset 0 1px 0 rgba(255,255,255,.28),
+              0 0 0 2px var(--sk-turn), 0 0 34px -6px color-mix(in srgb, var(--sk-turn) 55%, transparent); }
+  50%      { box-shadow: 0 34px 92px -10px rgba(0,0,0,.62), inset 0 1px 0 rgba(255,255,255,.28),
+              0 0 0 2px var(--sk-turn), 0 0 54px 2px color-mix(in srgb, var(--sk-turn) 75%, transparent); }
+}
+
+/* -- rainbow ring style -- */
+@property --sk-ring-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+#autodarts-skin-root .sk-turn-ring {
+  position: absolute;
+  inset: -5px;
+  z-index: 3;
+  border-radius: calc(var(--sk-radius) + 5px);
+  padding: 5px;
+  pointer-events: none;
+  background: conic-gradient(
+    from var(--sk-ring-angle),
+    #ff2d55, #ff9f0a, #ffe600, #30d158, #40c8e0, #6b5cff, #ff2d55
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  filter: saturate(1.35);
+  animation: sk-ring-rotate 4s linear infinite;
+}
+#autodarts-skin-root .sk-turn-ring::before {
+  content: "";
+  position: absolute;
+  inset: -18px;
+  border-radius: calc(var(--sk-radius) + 22px);
+  background: conic-gradient(
+    from var(--sk-ring-angle),
+    #ff2d55, #ff9f0a, #ffe600, #30d158, #40c8e0, #6b5cff, #ff2d55
+  );
+  filter: blur(24px);
+  opacity: 0.85;
+  z-index: -1;
+  animation: sk-ring-pulse 2.6s ease-in-out infinite;
+}
+@keyframes sk-ring-rotate { to { --sk-ring-angle: 360deg; } }
+@keyframes sk-ring-pulse {
+  0%, 100% { opacity: 0.7; filter: blur(22px); }
+  50%      { opacity: 1; filter: blur(30px); }
+}
+
+/* the "TO THROW" flag */
+#autodarts-skin-root .sk-turn-flag {
+  position: absolute;
+  top: 10px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: calc(var(--sk-stat-size) * 0.95);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #04140f;
+  background: var(--sk-turn);
+  box-shadow: 0 4px 18px -2px color-mix(in srgb, var(--sk-turn) 70%, transparent);
+  white-space: nowrap;
+}
+
+#autodarts-skin-root .sk-card:has(.sk-turn-flag) .sk-card-main { margin-top: 16px; }
+
+/* dim the players who aren't on the throw */
+#autodarts-skin-root[data-dim-inactive="true"] .sk-card:not(.is-active):not(.is-winner) {
+  opacity: 0.42;
+  filter: saturate(0.5);
+}
+
+#autodarts-skin-root .sk-card.is-winner { border-color: var(--sk-good); box-shadow: 0 0 0 2px var(--sk-good), 0 30px 80px -12px rgba(0,0,0,.6); }
 
 /* ---- card body ------------------------------------------------- */
 #autodarts-skin-root .sk-card-main {
   width: 100%;
   position: relative;
-  z-index: 1;
+  z-index: 5;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -192,9 +275,17 @@
 }
 #autodarts-skin-root .sk-checkout {
   order: 4;
-  font-size: var(--sk-stat-size); color: var(--sk-good); font-weight: 800;
-  letter-spacing: 0.04em;
+  font-size: calc(var(--sk-stat-size) * 1.15);
+  color: var(--sk-good);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sk-good) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sk-good) 40%, transparent);
 }
+#autodarts-skin-root .sk-checkout::before { content: "✓ "; opacity: 0.7; }
 #autodarts-skin-root .sk-stats {
   order: 5;
   display: flex; flex-wrap: wrap; gap: 3px 14px; justify-content: center;
@@ -244,11 +335,7 @@
 #autodarts-skin-root .sk-h-row { display: grid; grid-template-columns: 1fr 1fr; align-items: center; }
 #autodarts-skin-root .sk-h-scored { text-align: right; padding: 0 12px; opacity: 0.62; }
 #autodarts-skin-root .sk-h-left { text-align: right; padding: 0 12px; font-weight: 700; border-left: 1px solid rgba(255, 255, 255, 0.16); }
-#autodarts-skin-root .sk-h-row.is-bust { position: relative; opacity: 0.7; }
-#autodarts-skin-root .sk-h-row.is-bust::after {
-  content: ""; position: absolute; left: 6px; right: 6px; top: 50%;
-  height: 1px; background: var(--sk-bust); transform: rotate(-8deg);
-}
+#autodarts-skin-root .sk-h-row.was-bust .sk-h-scored { color: var(--sk-bust); opacity: 0.85; }
 
 /* ---- darts row ------------------------------------------------ */
 #autodarts-skin-root .sk-darts-row {
@@ -299,6 +386,7 @@
   flex-direction: column;
   gap: calc(var(--sk-gap) * 0.7);
   width: var(--sk-col-w);
+  overflow: visible;   /* let the active panel's ring / scale show */
 }
 #autodarts-skin-root .sk-col .sk-card {
   flex: 0 0 auto;
@@ -311,11 +399,12 @@
 #autodarts-skin-root .sk-col .sk-score { font-size: clamp(38px, calc(var(--sk-score-size) * 0.9), 88px); }
 #autodarts-skin-root .sk-col .sk-name { font-size: calc(var(--sk-name-size) * 0.95); }
 #autodarts-skin-root .sk-col .sk-history {
-  flex: 1 1 auto;
+  flex: 0 1 auto;          /* grow with the rows down to the board's bottom */
   min-height: 0;
   overflow: hidden;
+  justify-content: flex-end;   /* keep the newest rounds; oldest scroll off the top */
 }
-#autodarts-skin-root .sk-col .sk-h-rows { flex: 1; justify-content: flex-start; }
+#autodarts-skin-root .sk-col .sk-h-rows { flex: 0 0 auto; justify-content: flex-start; }
 #autodarts-skin-root[data-layout="sides"] .sk-darts-row { max-width: min(70vw, 880px); }
 #autodarts-skin-root[data-layout="sides"] .sk-dart { padding: 9px 6px; min-height: calc(var(--sk-dart-size) + 18px); }
 
@@ -340,6 +429,10 @@
 
 #autodarts-skin-root .sk-card.sk-turn-in {
   animation: sk-turn-pop calc(0.62s / var(--sk-anim-speed)) cubic-bezier(0.22, 1, 0.36, 1);
+}
+#autodarts-skin-root .sk-card.is-active.sk-turn-in {
+  animation: sk-turn-pop calc(0.62s / var(--sk-anim-speed)) cubic-bezier(0.22, 1, 0.36, 1),
+             sk-turn-glow 2.4s ease-in-out infinite;
 }
 #autodarts-skin-root .sk-card.sk-turn-in::after {
   content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;

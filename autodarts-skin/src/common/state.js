@@ -65,14 +65,15 @@
         history: rows.map((r) => ({
           scored: num(r.points),
           left: num(r.score),
-          bust: !!(r.isScoreStruck || r.isPointsStruck)
+          scoredStruck: !!r.isPointsStruck,
+          leftStruck: !!r.isScoreStruck
         })),
         turnDarts: isActive && turn && Array.isArray(turn.throws)
           ? turn.throws.map((t) => ({ name: str(t.segment && t.segment.name) || "–", value: segValue(t.segment) }))
           : [],
-        checkoutDarts: isActive
-          ? ((guides[i] || (st.state && st.state.checkoutGuide) || []).map((s) => str(s.name)).filter(Boolean))
-          : [],
+        checkoutDarts: ((isActive && st.state && st.state.checkoutGuide) || guides[i] || [])
+          .filter((seg) => seg && seg.name)
+          .map((seg) => ({ name: str(seg.name), value: segValue(seg) })),
         isActive,
         isWinner: st.winner === i || st.gameWinner === i
       };
@@ -103,6 +104,9 @@
 
   function segValue(s) {
     if (!s) return 0;
+    // a miss / outside-the-board dart carries multiplier 0 (and often the
+    // number of the wedge it landed near) — that scores nothing.
+    if (s.multiplier === 0 || s.bed === "Outside" || /outside|miss/i.test(str(s.name))) return 0;
     const m = s.multiplier || (s.bed === "Triple" ? 3 : s.bed === "Double" ? 2 : 1);
     return num(s.number) * m;
   }
@@ -136,8 +140,30 @@
     if (e === "turn_start" && ev.body && ev.body.isCheckout === false) this.flash = null;
   };
 
-  SkinStateStore.prototype.model = function () { return normalize(this.state, this.flash); };
+  SkinStateStore.prototype.model = function () {
+    const m = normalize(this.state, this.flash);
+    if (m && this.state && this.state.id) mergeHistory(m, this.state.id);
+    return m;
+  };
   SkinStateStore.prototype.reset = function () { this.state = null; this.flash = null; };
+
+  // Persist the fullest score-history seen this session (per match+leg), so a
+  // partial state update after a reconnect / navigation never shrinks the table.
+  function mergeHistory(m, matchId) {
+    let store = null;
+    try { store = window.localStorage; } catch (_) {}
+    if (!store) return;
+    for (const p of m.players) {
+      const key = "adSkinHist:" + matchId + ":" + p.index + ":" + (m.leg || 1) + ":" + (m.set || 1);
+      let cached = null;
+      try { cached = JSON.parse(store.getItem(key) || "null"); } catch (_) {}
+      if (Array.isArray(cached) && cached.length > (p.history ? p.history.length : 0)) {
+        p.history = cached;
+      } else if (p.history && p.history.length) {
+        try { store.setItem(key, JSON.stringify(p.history)); } catch (_) {}
+      }
+    }
+  }
 
   // ---- preview mock (mirrors the reference screenshot) -------------
   function mockState() {
@@ -161,10 +187,11 @@
           country: "de", avatarUrl: "",
           history: [
             { scored: 0, left: 501 }, { scored: 85, left: 416 }, { scored: 41, left: 375 },
-            { scored: 76, left: 299 }, { scored: 140, left: 159 }, { scored: 80, left: 79, bust: true }
+            { scored: 76, left: 299 }, { scored: 140, left: 159 }, { scored: 80, left: 79, leftStruck: true }
           ],
           turnDarts: [{ name: "S19", value: 19 }],
-          checkoutDarts: ["S20", "D20"], isActive: true, isWinner: false
+          checkoutDarts: [{ name: "S20", value: 20 }, { name: "D20", value: 40 }],
+          isActive: true, isWinner: false
         }
       ],
       lastEvent: null, _flag: countryFlag

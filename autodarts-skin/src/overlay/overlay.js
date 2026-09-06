@@ -53,6 +53,8 @@
     r.dataset.layout = settings.layout || "board";
     r.dataset.anchor = settings.position || "top";
     r.dataset.keepBoard = String(!!settings.keepBoard && !!settings.hideNative);
+    r.dataset.dimInactive = String(settings.dimInactive !== false);
+    r.dataset.turn = settings.turnHighlight || "rainbow";
   };
 
   SkinOverlay.prototype.setVisible = function (v) { this.rootEl.hidden = !v; };
@@ -108,7 +110,7 @@
         col.appendChild(this._cards[i]);
         const p = model.players[i];
         if (s.showHistory && p.history && p.history.length) {
-          col.appendChild(this._buildHistory(p, false));
+          col.appendChild(this._buildHistory(p, false, true));
         }
       }
       this.colL.hidden = !this.colL.children.length;
@@ -155,6 +157,11 @@
     if (model.lastEvent && p.isActive) card.classList.add("evt-" + model.lastEvent);
     card.textContent = "";
 
+    if (p.isActive && model.players.length > 1) {
+      if ((s.turnHighlight || "rainbow") !== "none") card.appendChild(el("div", "sk-turn-ring"));
+      if (s.showTurnFlag) card.appendChild(el("div", "sk-turn-flag", "▸ TO THROW"));
+    }
+
     const main = el("div", "sk-card-main");
 
     const scoreEl = el("div", "sk-score", String(p.score));
@@ -191,8 +198,12 @@
     if (s.showSkill && p.skill) id.appendChild(el("span", "sk-skill", p.skill));
     main.appendChild(id);
 
-    if (s.showCheckout && !s.showCheckoutDarts && p.checkoutDarts && p.checkoutDarts.length && p.isActive) {
-      main.appendChild(el("div", "sk-checkout", "→ " + p.checkoutDarts.join("  ")));
+    if (s.showCheckout !== false && p.checkoutDarts && p.checkoutDarts.length) {
+      const path = p.checkoutDarts
+        .map((d) => (typeof d === "string" ? d : d.name))
+        .filter(Boolean)
+        .join("  ");
+      if (path) main.appendChild(el("div", "sk-checkout", path));
     }
 
     if (s.showStatLine) {
@@ -232,14 +243,16 @@
   };
 
   // Fills `box` (a .sk-history element) with an optional name + the score rows.
-  SkinOverlay.prototype._fillHistoryBox = function (box, p, withName) {
+  // `all` = keep every round (Sides layout — the panel clips at the board edge);
+  // otherwise cap at the "History rows" setting.
+  SkinOverlay.prototype._fillHistoryBox = function (box, p, withName, all) {
     const s = this._s;
-    const rows = Math.max(1, Math.min(25, (s.historyRows | 0) || 6));
+    const rows = all ? 200 : Math.max(3, Math.min(60, (s.historyRows | 0) || 40));
     box.textContent = "";
     if (withName) box.appendChild(el("div", "sk-h-name", p.name));
     const rowsWrap = el("div", "sk-h-rows");
     for (const h of p.history.slice(-rows)) {
-      const row = el("div", "sk-h-row" + (h.bust ? " is-bust" : ""));
+      const row = el("div", "sk-h-row" + (h.leftStruck ? " was-bust" : ""));
       row.appendChild(el("span", "sk-h-scored", String(h.scored)));
       row.appendChild(el("span", "sk-h-left", String(h.left)));
       rowsWrap.appendChild(row);
@@ -247,9 +260,9 @@
     box.appendChild(rowsWrap);
   };
 
-  SkinOverlay.prototype._buildHistory = function (p, withName) {
+  SkinOverlay.prototype._buildHistory = function (p, withName, all) {
     const box = el("div", "sk-history");
-    this._fillHistoryBox(box, p, withName);
+    this._fillHistoryBox(box, p, withName, all);
     return box;
   };
 
@@ -285,18 +298,30 @@
         box.style.transform = "translate(0, -50%)";
       }
     };
-    // full-height side columns (Sides layout): match the board's box exactly
+    // side columns (Sides layout): top-aligned to the board, the history free
+    // to grow downward with the rounds to near the bottom of the screen
+    const vh = window.innerHeight || 1080;
     const placeCol = (col, side) => {
       if (!col || col.hidden) return;
       if (!b) { col.style.visibility = "hidden"; return; }
       col.style.visibility = "";
       col.style.transform = "none";
-      col.style.top = b.top + "px";
-      col.style.height = b.height + "px";
+      col.style.height = "auto";
+      col.style.maxHeight = "none";
+      const topPx = Math.max(6, b.top);
+      col.style.top = topPx + "px";
       const w = col.offsetWidth || 280;
       col.style.left = (side === "left"
         ? Math.max(6, b.left - gap - w)
         : Math.min(vw - w - 6, b.right + gap)) + "px";
+      const card = col.querySelector(".sk-card");
+      const hist = col.querySelector(".sk-history");
+      if (hist) {
+        const cardH = card ? card.getBoundingClientRect().height : 0;
+        // grow down as far as the bottom of the screen
+        const room = vh - topPx - cardH - 24;
+        hist.style.maxHeight = Math.max(90, room) + "px";
+      }
     };
 
     placeBox(this.sideL, "left");
@@ -309,12 +334,19 @@
     const s = this._s;
     const thrown = p.turnDarts || [];
     const guide = s.showCheckoutDarts ? p.checkoutDarts || [] : [];
+    const thrownAsPoints = s.dartValues !== false;
+    const label = (d, asPoints) => {
+      if (d == null) return "";
+      if (typeof d === "string") return d;
+      if (asPoints) return d.value != null ? String(d.value) : (d.name || "");
+      return d.name || (d.value != null ? String(d.value) : "");
+    };
     // Always exactly 3 equal slots: thrown darts, then checkout suggestion,
     // then blanks — so the row never changes size between rounds.
     for (let i = 0; i < 3; i++) {
       let text = "", cls = "is-empty";
-      if (i < thrown.length) { text = thrown[i].name || "–"; cls = "is-thrown"; }
-      else if (i - thrown.length < guide.length) { text = guide[i - thrown.length]; cls = "is-suggest"; }
+      if (i < thrown.length) { text = label(thrown[i], thrownAsPoints) || "0"; cls = "is-thrown"; }
+      else if (i - thrown.length < guide.length) { text = label(guide[i - thrown.length], false); cls = "is-suggest"; }
       this.dartsRow.appendChild(el("span", "sk-dart " + cls, text || " "));
     }
   };
