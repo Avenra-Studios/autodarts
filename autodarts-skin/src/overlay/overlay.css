@@ -200,9 +200,14 @@
 
 #autodarts-skin-root .sk-card:has(.sk-turn-flag) .sk-card-main { margin-top: 16px; }
 
-/* dim the players who aren't on the throw */
-#autodarts-skin-root[data-dim-inactive="true"] .sk-card:not(.is-active):not(.is-winner) {
-  opacity: 0.42;
+/* dim the players who aren't on the throw (panel + their history table) */
+#autodarts-skin-root[data-dim-inactive="true"] .sk-panel .sk-card:not(.is-active):not(.is-winner),
+#autodarts-skin-root[data-dim-inactive="true"] .sk-col.sk-col-dim {
+  opacity: 0.4;
+  filter: saturate(0.5);
+}
+#autodarts-skin-root[data-dim-inactive="true"] .sk-side.sk-side-dim {
+  opacity: 0.4;
   filter: saturate(0.5);
 }
 
@@ -442,8 +447,8 @@
   align-items: stretch;
 }
 #autodarts-skin-root .sk-col .sk-card-main { align-items: center; gap: 4px; }
-#autodarts-skin-root .sk-col .sk-score { font-size: clamp(38px, calc(var(--sk-score-size) * 0.9), 88px); }
-#autodarts-skin-root .sk-col .sk-name { font-size: calc(var(--sk-name-size) * 0.95); }
+#autodarts-skin-root .sk-col .sk-score { font-size: clamp(40px, calc(var(--sk-score-size) * 0.92), 180px); }
+#autodarts-skin-root .sk-col .sk-name { font-size: calc(var(--sk-name-size) * 1.05); }
 #autodarts-skin-root .sk-col .sk-history {
   flex: 0 1 auto;          /* grow with the rows down to the board's bottom */
   min-height: 0;

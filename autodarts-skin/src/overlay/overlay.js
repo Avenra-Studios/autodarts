@@ -132,6 +132,8 @@
       // cards + history stacked in absolute side columns; big board between
       this.colL.textContent = "";
       this.colR.textContent = "";
+      this.colL.classList.remove("sk-col-dim");
+      this.colR.classList.remove("sk-col-dim");
       for (let i = 0; i < n; i++) {
         let col = this.colL;
         if (n > 1) col = i % 2 ? this.colR : this.colL;
@@ -141,6 +143,7 @@
         if (s.showHistory && p.history && p.history.length) {
           col.appendChild(this._buildHistory(p, false, true));
         }
+        if (n > 1 && !p.isActive && !p.isWinner) col.classList.add("sk-col-dim");
       }
       this.colL.hidden = !this.colL.children.length;
       this.colR.hidden = !this.colR.children.length;
@@ -271,6 +274,9 @@
     }
     this._fillSide(this.sideL, leftP);
     this._fillSide(this.sideR, rightP);
+    const multi = model.players.length > 1;
+    this.sideL.classList.toggle("sk-side-dim", multi && !!leftP && !leftP.isActive && !leftP.isWinner);
+    this.sideR.classList.toggle("sk-side-dim", multi && !!rightP && !rightP.isActive && !rightP.isWinner);
     this._positionSides();
   };
 

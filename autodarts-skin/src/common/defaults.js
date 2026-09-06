@@ -64,13 +64,13 @@
             { value: "condensed", label: "Condensed", css: "'Oswald', 'Bebas Neue', Impact, system-ui, sans-serif" }
           ]
         },
-        { key: "scoreSize", label: "Big score size", type: "range", min: 40, max: 260, step: 2, default: 96, unit: "px", cssVar: "--sk-score-size" },
+        { key: "scoreSize", label: "Big score size", type: "range", min: 40, max: 300, step: 2, default: 128, unit: "px", cssVar: "--sk-score-size" },
         { key: "scoreWeight", label: "Big score weight", type: "range", min: 200, max: 900, step: 100, default: 800, unit: "", cssVar: "--sk-score-weight" },
-        { key: "nameSize", label: "Player name size", type: "range", min: 10, max: 44, step: 1, default: 19, unit: "px", cssVar: "--sk-name-size" },
-        { key: "statSize", label: "Stat line size", type: "range", min: 9, max: 28, step: 1, default: 13, unit: "px", cssVar: "--sk-stat-size" },
+        { key: "nameSize", label: "Player name size", type: "range", min: 10, max: 60, step: 1, default: 25, unit: "px", cssVar: "--sk-name-size" },
+        { key: "statSize", label: "Stat line size", type: "range", min: 9, max: 36, step: 1, default: 16, unit: "px", cssVar: "--sk-stat-size" },
         { key: "tableSize", label: "History table size", type: "range", min: 8, max: 48, step: 1, default: 24, unit: "px", cssVar: "--sk-table-size" },
         { key: "tableRowGap", label: "History row spacing", type: "range", min: 0, max: 24, step: 1, default: 11, unit: "px", cssVar: "--sk-table-row-gap" },
-        { key: "dartSize", label: "Dart box text size", type: "range", min: 12, max: 48, step: 1, default: 22, unit: "px", cssVar: "--sk-dart-size" }
+        { key: "dartSize", label: "Dart box text size", type: "range", min: 12, max: 64, step: 1, default: 30, unit: "px", cssVar: "--sk-dart-size" }
       ]
     },
     {
