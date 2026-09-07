@@ -360,19 +360,6 @@
   width: 100%;
   max-width: var(--sk-card-w);
 }
-#autodarts-skin-root .sk-dart-total {
-  flex: 0 0 auto;
-  align-self: stretch;
-  display: flex; align-items: center; justify-content: center;
-  padding: 0 18px;
-  border-radius: calc(var(--sk-radius) * 0.6);
-  font-size: var(--sk-dart-size);
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  color: var(--sk-accent);
-  background: color-mix(in srgb, var(--sk-accent) 14%, transparent);
-  border: 1px solid color-mix(in srgb, var(--sk-accent) 32%, transparent);
-}
 #autodarts-skin-root .sk-dart.is-thrown {
   pointer-events: auto;
   cursor: pointer;

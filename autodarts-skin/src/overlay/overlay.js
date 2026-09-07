@@ -388,10 +388,6 @@
       else if (i - thrown.length < guide.length) { text = label(guide[i - thrown.length], false); cls = "is-suggest"; }
       this.dartsRow.appendChild(el("span", "sk-dart " + cls, text || " "));
     }
-    if (thrown.length) {
-      const sum = thrown.reduce((a, d) => a + (d && d.value ? d.value : 0), 0);
-      this.dartsRow.appendChild(el("span", "sk-dart-total", "= " + sum));
-    }
   };
 
   root.SkinOverlay = SkinOverlay;
