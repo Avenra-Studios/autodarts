@@ -302,7 +302,7 @@
   border: 1px solid color-mix(in srgb, var(--sk-good) 38%, transparent);
 }
 #autodarts-skin-root .sk-ck-dart {
-  font-size: calc(var(--sk-stat-size) * 1.05);
+  font-size: calc(var(--sk-stat-size) * 1.5);
   line-height: 1.15;
 }
 #autodarts-skin-root .sk-stats {
@@ -449,6 +449,20 @@
 #autodarts-skin-root .sk-col .sk-card-main { align-items: center; gap: 4px; }
 #autodarts-skin-root .sk-col .sk-score { font-size: clamp(40px, calc(var(--sk-score-size) * 0.92), 180px); }
 #autodarts-skin-root .sk-col .sk-name { font-size: calc(var(--sk-name-size) * 1.05); }
+/* in the narrow side panels: name on its own full-width row, badges wrap under it */
+#autodarts-skin-root .sk-col .sk-idrow {
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 8px;
+  background: transparent;
+  padding: 0;
+}
+#autodarts-skin-root .sk-col .sk-name {
+  flex: 1 1 100%;
+  order: -1;
+  text-align: center;
+  max-width: 100%;
+}
 #autodarts-skin-root .sk-col .sk-history {
   flex: 0 1 auto;          /* grow with the rows down to the board's bottom */
   min-height: 0;
