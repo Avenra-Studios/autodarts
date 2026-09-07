@@ -159,8 +159,9 @@
 
     const active = model.players[model.currentPlayerIndex] || model.players.find((x) => x.isActive);
     if (s.showDartsRow && active) this._darts(active);
-    if (s.showPager && model.legs > 0) {
-      for (let i = 1; i <= Math.max(model.legs, model.leg || 1); i++) {
+    const legTarget = Math.max(model.legs || 0, model.leg || 1);
+    if (s.showPager && legTarget > 1) {
+      for (let i = 1; i <= legTarget; i++) {
         const b = el("span", "sk-pg" + (i === (model.leg || 1) ? " is-cur" : ""), String(i));
         this.pager.appendChild(b);
       }
@@ -386,6 +387,10 @@
       if (i < thrown.length) { text = label(thrown[i], thrownAsPoints) || "0"; cls = "is-thrown"; }
       else if (i - thrown.length < guide.length) { text = label(guide[i - thrown.length], false); cls = "is-suggest"; }
       this.dartsRow.appendChild(el("span", "sk-dart " + cls, text || " "));
+    }
+    if (thrown.length) {
+      const sum = thrown.reduce((a, d) => a + (d && d.value ? d.value : 0), 0);
+      this.dartsRow.appendChild(el("span", "sk-dart-total", "= " + sum));
     }
   };
 

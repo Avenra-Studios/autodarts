@@ -202,13 +202,10 @@
 
 /* dim the players who aren't on the throw (panel + their history table) */
 #autodarts-skin-root[data-dim-inactive="true"] .sk-panel .sk-card:not(.is-active):not(.is-winner),
-#autodarts-skin-root[data-dim-inactive="true"] .sk-col.sk-col-dim {
-  opacity: 0.4;
-  filter: saturate(0.5);
-}
+#autodarts-skin-root[data-dim-inactive="true"] .sk-col.sk-col-dim,
 #autodarts-skin-root[data-dim-inactive="true"] .sk-side.sk-side-dim {
-  opacity: 0.4;
-  filter: saturate(0.5);
+  opacity: 0.55;
+  filter: saturate(0.6);
 }
 
 #autodarts-skin-root .sk-card.is-winner { border-color: var(--sk-good); box-shadow: 0 0 0 2px var(--sk-good), 0 30px 80px -12px rgba(0,0,0,.6); }
@@ -226,7 +223,6 @@
 }
 
 #autodarts-skin-root .sk-score {
-  order: 2;
   font-size: var(--sk-score-size);
   font-weight: var(--sk-score-weight);
   line-height: 0.92;
@@ -235,6 +231,8 @@
   font-variant-numeric: tabular-nums;
   text-shadow: 0 4px 30px rgba(0, 0, 0, 0.45);
 }
+#autodarts-skin-root .sk-score-row .sk-score { order: 0; }
+#autodarts-skin-root .sk-score-row .sk-checkout { order: 1; }
 #autodarts-skin-root .sk-card.evt-bust .sk-score { color: var(--sk-bust); }
 #autodarts-skin-root .sk-card.evt-checkout .sk-score { color: var(--sk-good); }
 
@@ -361,6 +359,19 @@
   display: flex; gap: var(--sk-gap);
   width: 100%;
   max-width: var(--sk-card-w);
+}
+#autodarts-skin-root .sk-dart-total {
+  flex: 0 0 auto;
+  align-self: stretch;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 18px;
+  border-radius: calc(var(--sk-radius) * 0.6);
+  font-size: var(--sk-dart-size);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--sk-accent);
+  background: color-mix(in srgb, var(--sk-accent) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sk-accent) 32%, transparent);
 }
 #autodarts-skin-root .sk-dart.is-thrown {
   pointer-events: auto;
