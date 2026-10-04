@@ -142,13 +142,16 @@
       group: "Page background",
       fields: [
         {
-          key: "pageBg", label: "Background", type: "select", default: "bundled",
+          key: "pageBg", label: "Background", type: "select", default: "coded",
           options: [
-            { value: "default", label: "Autodarts default" },
-            { value: "bundled", label: "Bundled image (background.jpg)" },
-            { value: "custom", label: "Custom image URL" }
+            { value: "coded", label: "Coded orange / blue (play) + black hole (menu)" },
+            { value: "bundled", label: "Bundled image (play) + black hole (menu)" },
+            { value: "custom", label: "Custom image URL (everywhere)" },
+            { value: "default", label: "Autodarts default" }
           ]
         },
+        { key: "codedLeft", label: "Coded background: left glow", type: "color", default: "#ff7a1a" },
+        { key: "codedRight", label: "Coded background: right glow", type: "color", default: "#1e9bff" },
         { key: "pageBgUrl", label: "Custom image URL", type: "text", default: "" },
         { key: "pageBgDim", label: "Darken", type: "range", min: 0, max: 0.9, step: 0.05, default: 0.4, unit: "" },
         { key: "glassifyNative", label: "Glassify autodarts' own UI (all pages)", type: "toggle", default: true },

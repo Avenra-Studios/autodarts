@@ -115,6 +115,65 @@
   // Painted on <body> (a z-index:-1 layer gets covered by the app's own
   // in-flow content, which is transparent, so <body> is what shows through).
   let bgStyle = null;
+  // ---- coded play background (SVG, resolution independent) ------------
+  function codedBgSvg(o, b) {
+    const W = 1600, H = 900, cx = 800, cy = 450;
+    let seed = 11;
+    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const arc = (rx, ry, rot, a0, a1) => {
+      let d = "";
+      for (let i = 0; i <= 120; i++) {
+        const t = (a0 + ((a1 - a0) * i) / 120) * Math.PI / 180;
+        const x = rx * Math.cos(t), y = ry * Math.sin(t);
+        const X = x * Math.cos(rot) - y * Math.sin(rot) + cx;
+        const Y = x * Math.sin(rot) + y * Math.cos(rot) + cy;
+        d += (i ? "L" : "M") + X.toFixed(1) + "," + Y.toFixed(1);
+      }
+      return d;
+    };
+    let arcs = "", glow = "";
+    for (let k = 0; k < 8; k++) {
+      const rx = 360 + k * 88, ry = 262 + k * 74, rot = -0.16;
+      const op = (1 - k * 0.09).toFixed(2), sw = (3.4 - k * 0.3).toFixed(2);
+      const L = arc(rx, ry, rot, 118, 252), R = arc(rx, ry, rot, -72, 72);
+      arcs += `<path d="${L}" stroke="${o}" stroke-width="${sw}" opacity="${op}" fill="none" stroke-linecap="round"/>`;
+      arcs += `<path d="${R}" stroke="${b}" stroke-width="${sw}" opacity="${op}" fill="none" stroke-linecap="round"/>`;
+      glow += `<path d="${L}" stroke="${o}" stroke-width="${(sw * 5).toFixed(1)}" opacity="0.6" fill="none"/>`;
+      glow += `<path d="${R}" stroke="${b}" stroke-width="${(sw * 5).toFixed(1)}" opacity="0.6" fill="none"/>`;
+    }
+    const streaks = [
+      ["M-40,820 Q520,560 1000,80", o], ["M1640,80 Q1060,330 620,900", b],
+      ["M-40,330 Q360,160 760,-40", o], ["M1640,600 Q1200,640 880,940", b]
+    ].map(([d, c]) => `<path d="${d}" stroke="${c}" stroke-width="1.8" opacity="0.6" fill="none" stroke-linecap="round"/>`).join("");
+    let sparks = "";
+    for (let i = 0; i < 90; i++) {
+      const x = rnd() * W, y = rnd() * H;
+      const c = x < cx ? o : b;
+      sparks += `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${(0.5 + rnd() * 1.6).toFixed(2)}" fill="${c}" opacity="${(0.2 + rnd() * 0.7).toFixed(2)}"/>`;
+    }
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <filter id="blurBig" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="70"/></filter>
+        <filter id="gl" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="9"/></filter>
+        <filter id="glowRing" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="14"/></filter>
+        <radialGradient id="vg" cx="0.5" cy="0.5" r="0.75"><stop offset="0.5" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="0.85"/></radialGradient>
+      </defs>
+      <rect width="${W}" height="${H}" fill="#03050b"/>
+      <g filter="url(#blurBig)">
+        <ellipse cx="60" cy="${cy}" rx="330" ry="300" fill="${o}" opacity="0.75"/>
+        <ellipse cx="${W - 60}" cy="${cy}" rx="330" ry="300" fill="${b}" opacity="0.75"/>
+      </g>
+      <ellipse cx="${cx}" cy="${cy}" rx="350" ry="350" fill="none" stroke="#e8f4ff" stroke-width="22" opacity="0.55" filter="url(#glowRing)"/>
+      <ellipse cx="${cx}" cy="${cy}" rx="350" ry="350" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.5"/>
+      <g filter="url(#gl)">${glow}</g>
+      ${arcs}
+      ${streaks}
+      ${sparks}
+      <rect width="${W}" height="${H}" fill="url(#vg)"/>
+    </svg>`;
+    return "data:image/svg+xml," + encodeURIComponent(svg);
+  }
+
   function updatePageBg() {
     if (!bgStyle || !bgStyle.isConnected) {
       bgStyle = document.createElementNS("http://www.w3.org/1999/xhtml", "style");
@@ -122,17 +181,26 @@
       (document.head || document.documentElement).appendChild(bgStyle);
     }
     const mode = settings.pageBg || "default";
-    // Background applies across the whole site, not just the play screen.
-    const active = settings.enabled && mode !== "default";
-    const url = mode === "custom"
-      ? settings.pageBgUrl
-      : (extAlive() ? chrome.runtime.getURL("assets/background.jpg") : "");
-    if (!active || !url) { bgStyle.textContent = ""; return; }
+    if (!settings.enabled || mode === "default") { bgStyle.textContent = ""; return; }
     const dim = Math.max(0, Math.min(0.95, +settings.pageBgDim || 0));
-    const safe = url.replace(/["\\]/g, encodeURIComponent);
+    const dimLayer = `linear-gradient(rgba(0,0,0,${dim}),rgba(0,0,0,${dim}))`;
+    const imgLayer = (u) => `url("${u.replace(/["\\]/g, encodeURIComponent)}")`;
+    let layers;
+    if (onPlayRoute() && mode === "coded") {
+      // Vector (SVG) background: crisp at any resolution, colours from settings.
+      layers = [`url("${codedBgSvg(settings.codedLeft || "#ff7a1a", settings.codedRight || "#1e9bff")}")`];
+    } else {
+      const url = mode === "custom"
+        ? settings.pageBgUrl
+        : (extAlive()
+          ? chrome.runtime.getURL(onPlayRoute() ? "assets/background.jpg" : "assets/background-menu.jpg")
+          : "");
+      if (!url) { bgStyle.textContent = ""; return; }
+      layers = [dimLayer, imgLayer(url)];
+    }
     bgStyle.textContent = `
       html.dark, body {
-        background-image: linear-gradient(rgba(0,0,0,${dim}),rgba(0,0,0,${dim})), url("${safe}") !important;
+        background-image: ${layers.join(", ")} !important;
         background-size: cover !important;
         background-position: center center !important;
         background-attachment: fixed !important;
@@ -140,6 +208,7 @@
       }
     `;
   }
+
 
   // ---- glassify autodarts' own UI (site-wide) -----------------------
   let glassStyle = null;

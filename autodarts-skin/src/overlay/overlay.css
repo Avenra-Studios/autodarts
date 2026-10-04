@@ -127,14 +127,14 @@
 
 /* -- glow-ring style -- */
 #autodarts-skin-root[data-turn="glow"] .sk-card.is-active {
-  border-color: var(--sk-turn);
+  border-color: var(--sk-ring-c, var(--sk-side-l));
   animation: sk-turn-glow 2.4s ease-in-out infinite;
 }
 @keyframes sk-turn-glow {
   0%, 100% { box-shadow: 0 34px 92px -10px rgba(0,0,0,.62), inset 0 1px 0 rgba(255,255,255,.28),
-              0 0 0 2px var(--sk-turn), 0 0 34px -6px color-mix(in srgb, var(--sk-turn) 55%, transparent); }
+              0 0 0 2px var(--sk-ring-c, var(--sk-side-l)), 0 0 34px -6px color-mix(in srgb, var(--sk-ring-c, var(--sk-side-l)) 55%, transparent); }
   50%      { box-shadow: 0 34px 92px -10px rgba(0,0,0,.62), inset 0 1px 0 rgba(255,255,255,.28),
-              0 0 0 2px var(--sk-turn), 0 0 54px 2px color-mix(in srgb, var(--sk-turn) 75%, transparent); }
+              0 0 0 2px var(--sk-ring-c, var(--sk-side-l)), 0 0 54px 2px color-mix(in srgb, var(--sk-ring-c, var(--sk-side-l)) 75%, transparent); }
 }
 
 /* -- rainbow ring style -- */
@@ -150,35 +150,68 @@
   border-radius: calc(var(--sk-radius) + 5px);
   padding: 5px;
   pointer-events: none;
-  background: conic-gradient(
-    from var(--sk-ring-angle),
-    #ff2d55, #ff9f0a, #ffe600, #30d158, #40c8e0, #6b5cff, #ff2d55
-  );
+  background: var(--sk-ring-c, var(--sk-accent));
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask-composite: exclude;
-  filter: saturate(1.35);
-  animation: sk-ring-rotate 4s linear infinite;
+  filter: saturate(1.2);
 }
+#autodarts-skin-root .sk-col-l .sk-turn-ring { --sk-ring-c: var(--sk-side-l); }
+/* outer glow around the active panel, in its side colour */
+#autodarts-skin-root[data-turn="rainbow"] .sk-col-l .sk-card.is-active { --sk-ring-c: var(--sk-side-l); }
+#autodarts-skin-root[data-turn="rainbow"] .sk-col-r .sk-card.is-active { --sk-ring-c: var(--sk-side-r); }
+#autodarts-skin-root[data-turn="rainbow"] .sk-card.is-active {
+  box-shadow:
+    0 0 0 2px var(--sk-ring-c),
+    0 0 34px 6px color-mix(in srgb, var(--sk-ring-c) 75%, transparent),
+    0 0 90px 22px color-mix(in srgb, var(--sk-ring-c) 45%, transparent),
+    0 30px 80px -12px rgba(0, 0, 0, 0.6);
+}
+
+#autodarts-skin-root .sk-col-r .sk-turn-ring { --sk-ring-c: var(--sk-side-r); }
 #autodarts-skin-root .sk-turn-ring::before {
   content: "";
   position: absolute;
   inset: -18px;
   border-radius: calc(var(--sk-radius) + 22px);
-  background: conic-gradient(
-    from var(--sk-ring-angle),
-    #ff2d55, #ff9f0a, #ffe600, #30d158, #40c8e0, #6b5cff, #ff2d55
-  );
+  background: var(--sk-ring-c, var(--sk-accent));
   filter: blur(24px);
   opacity: 0.85;
   z-index: -1;
   animation: sk-ring-pulse 2.6s ease-in-out infinite;
 }
-@keyframes sk-ring-rotate { to { --sk-ring-angle: 360deg; } }
 @keyframes sk-ring-pulse {
   0%, 100% { opacity: 0.7; filter: blur(22px); }
   50%      { opacity: 1; filter: blur(30px); }
+}
+
+
+/* winner: a rainbow ring goes round the panel and its glow follows it */
+#autodarts-skin-root .sk-turn-ring.sk-win {
+  -webkit-mask: none;
+  mask: none;
+  padding: 5px;
+  background: conic-gradient(
+    from var(--sk-ring-angle),
+    #ff2d55, #ff9f0a, #ffe600, #30d158, #40c8e0, #6b5cff, #ff2d55
+  );
+  animation: sk-ring-rotate 3s linear infinite;
+}
+/* solid inner panel: leaves only the rainbow edge showing around the card */
+#autodarts-skin-root .sk-turn-ring.sk-win::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border-radius: calc(var(--sk-radius) - 1px);
+  background: color-mix(in srgb, var(--sk-panel-active) 55%, #0b0f1c);
+}
+#autodarts-skin-root .sk-turn-ring.sk-win::before {
+  background: conic-gradient(
+    from var(--sk-ring-angle),
+    #ff2d55, #ff9f0a, #ffe600, #30d158, #40c8e0, #6b5cff, #ff2d55
+  );
+  animation: sk-ring-rotate 3s linear infinite, sk-ring-pulse 2.2s ease-in-out infinite;
 }
 
 /* the "TO THROW" flag */
@@ -193,8 +226,8 @@
   font-weight: 800;
   letter-spacing: 0.12em;
   color: #04140f;
-  background: var(--sk-turn);
-  box-shadow: 0 4px 18px -2px color-mix(in srgb, var(--sk-turn) 70%, transparent);
+  background: var(--sk-ring-c, var(--sk-side-l));
+  box-shadow: 0 4px 18px -2px color-mix(in srgb, var(--sk-ring-c, var(--sk-side-l)) 70%, transparent);
   white-space: nowrap;
 }
 
@@ -208,7 +241,11 @@
   filter: saturate(0.6);
 }
 
-#autodarts-skin-root .sk-card.is-winner { border-color: var(--sk-good); box-shadow: 0 0 0 2px var(--sk-good), 0 30px 80px -12px rgba(0,0,0,.6); }
+#autodarts-skin-root .sk-card.is-winner { overflow: visible !important; box-shadow: 0 30px 80px -12px rgba(0,0,0,.6); }
+/* the glow always takes the player's side colour — never the green winner/checkout colour */
+#autodarts-skin-root .sk-col-l .sk-card { --sk-ring-c: var(--sk-side-l); }
+#autodarts-skin-root .sk-col-r .sk-card { --sk-ring-c: var(--sk-side-r); }
+
 
 /* ---- card body ------------------------------------------------- */
 #autodarts-skin-root .sk-card-main {

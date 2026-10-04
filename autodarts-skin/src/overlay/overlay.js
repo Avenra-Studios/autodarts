@@ -65,6 +65,8 @@
     r.dataset.keepBoard = String(!!settings.keepBoard && !!settings.hideNative);
     r.dataset.dimInactive = String(settings.dimInactive !== false);
     r.dataset.turn = settings.turnHighlight || "rainbow";
+    r.style.setProperty("--sk-side-l", settings.codedLeft || "#ff7a1a");
+    r.style.setProperty("--sk-side-r", settings.codedRight || "#1e9bff");
   };
 
   SkinOverlay.prototype.setVisible = function (v) { this.rootEl.hidden = !v; };
@@ -190,7 +192,9 @@
     if (model.lastEvent && p.isActive) card.classList.add("evt-" + model.lastEvent);
     card.textContent = "";
 
-    if (p.isActive && model.players.length > 1) {
+    if (p.isWinner && (s.turnHighlight || "rainbow") !== "none") {
+      card.appendChild(el("div", "sk-turn-ring sk-win"));
+    } else if (p.isActive && model.players.length > 1) {
       if ((s.turnHighlight || "rainbow") !== "none") card.appendChild(el("div", "sk-turn-ring"));
       if (s.showTurnFlag) card.appendChild(el("div", "sk-turn-flag", "▸ TO THROW"));
     }
